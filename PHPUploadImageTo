@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Shared\Application\Service;
+
+class UploadFileFromUrlService
+{
+    public function uploadImageTo(string $remoteFileUrl, string $savePath, array $allowedMimeType = ['image']): bool
+    {
+        $imageInfo      = getimagesize($remoteFileUrl);
+        if (is_array($imageInfo) && array_key_exists('mime', $imageInfo)) {
+            $fileMimeData = explode('/', $imageInfo['mime']);
+            $fileMimeType = reset($fileMimeData);
+            if (in_array($fileMimeType, $allowedMimeType) || in_array($allowedMimeType, $imageInfo['mime'])) {
+                $transferResult = readfile($remoteFileUrl);
+                if (is_int($transferResult) && $transferResult < 500000) {
+                    $uploadedFile   = file_get_contents($remoteFileUrl);
+                    if ($uploadedFile !== false) {
+                        $uploadResult   = file_put_contents($savePath, $uploadedFile);
+                        if ($uploadResult !== false) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+}
